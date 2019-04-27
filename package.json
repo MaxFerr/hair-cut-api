@@ -2,10 +2,7 @@
   "name": "laura",
   "version": "1.0.0",
   "description": "",
-  "main": "server.js",
-  "scripts": {
-    "start": "server.js"
-  },
+  "main": "server.js",  
   "keywords": [],
   "author": "",
   "license": "ISC",
