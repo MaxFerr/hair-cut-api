@@ -31,10 +31,8 @@ const upload = multer({
 const db=knex({
 	client:'pg',
 	connection:{
-		host:'127.0.0.1',
-		user:'postgres',
-		password:'aaaazz1989',
-		database:'lauradb'
+		connectionString:process.env.DATABASE_URL,
+		ssl: true		
 	}
 });
 
@@ -173,7 +171,7 @@ app.post('/upload',(req,res)=>{
    	}   	
    	return newPath;
    }
-	const filePath = req.protocol + "://" + host +':3001'+ '/' + modifLink(req.file.path);
+	const filePath = req.protocol + "://" + host + '/' + modifLink(req.file.path);
 	/*Change :3001 later when it's deployed*/
 	return res.json(filePath)
   })	
@@ -197,7 +195,7 @@ app.put('/modifArticle',(req,res)=>{
 	.catch(err=>res.status(400).json('Unable to get that article.'))
 		if(oldImagePath!==undefined){
 			const delImagePath = oldImagePath;		
-		const NewDelPath=delImagePath.replace('http://localhost:3001', '.');		
+		const NewDelPath=delImagePath.replace(req.protocol + "://" + host, '.');		
 		/*const host = req.hostname; replace 'http://localhost:3001' */
 		fs.unlink(NewDelPath, (err) => {
 		  if (err) {
@@ -292,7 +290,7 @@ app.delete('/deleteArticle/:id',(req,res)=>{
 			.then(article_id=>{
 				if(oldImagePath!==undefined){
 				const delImagePath = oldImagePath;		
-				const NewDelPath=delImagePath.replace('http://localhost:3001', '.');		
+				const NewDelPath=delImagePath.replace(req.protocol + "://" + host, '.');		
 				/*const host = req.hostname; replace 'http://localhost:3001' */
 				fs.unlink(NewDelPath, (err) => {
 				  if (err) {
