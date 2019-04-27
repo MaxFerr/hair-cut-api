@@ -172,6 +172,7 @@ app.post('/upload',(req,res)=>{
    	return newPath;
    }
 	const filePath = req.protocol + "://" + host + '/' + modifLink(req.file.path);
+	console.log(filePath)
 	/*Change :3001 later when it's deployed*/
 	return res.json(filePath)
   })	
