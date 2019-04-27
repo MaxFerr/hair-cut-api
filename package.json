@@ -1,8 +1,11 @@
 {
-  "name": "laura",
+  "name": "node",
   "version": "1.0.0",
   "description": "",
-  "main": "server.js",  
+  "main": "server.js",
+  "scripts": {
+    "start": "nodemon server.js"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
