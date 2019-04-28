@@ -164,7 +164,7 @@ app.post('/upload',(req,res)=>{
 			return response.json()
 			})
 			.then(path=>{				
-			return path.data.link
+			return res.json(path.data.link)
 			})
 	/*upload(req, res, function (err) {
 	 if (err instanceof multer.MulterError) {
