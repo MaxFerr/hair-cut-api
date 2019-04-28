@@ -152,6 +152,7 @@ app.post('/newarticle',(req,res)=>{
 
 app.post('/upload',(req,res)=>{
 	const {formData}=req.body;
+	const filePath = test;
 	fetch('https://api.imgur.com/3/image', {
 			  method: 'post',
 			  headers: {
@@ -163,9 +164,11 @@ app.post('/upload',(req,res)=>{
 			.then(response=>{				
 			return response.json()
 			})
-			.then(path=>{				
+			.then(path=>{
+			filePath=path.data.link;						
 			return res.json(path.data.link)
 			})
+			return res.json(filePath)
 	/*upload(req, res, function (err) {
 	 if (err instanceof multer.MulterError) {
       return res.status(400).json('Unable to upload that file')
