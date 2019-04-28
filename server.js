@@ -151,24 +151,7 @@ app.post('/newarticle',(req,res)=>{
 })
 
 app.post('/upload',(req,res)=>{
-	const {formData}=req.body;
-	const filePath = test;
-	fetch('https://api.imgur.com/3/image', {
-			  method: 'post',
-			  headers: {			  	
-			  	'Authorization':'Client-ID 2d8b170d7a61ba0'
-			  },
-			  body: formData
-			})
-			.then(response=>{				
-			return response.json()
-			})
-			.then(path=>{
-			filePath=path.data.link;						
-			return res.json(path.data.link)
-			})
-			return res.json(filePath)
-	/*upload(req, res, function (err) {
+	upload(req, res, function (err) {
 	 if (err instanceof multer.MulterError) {
       return res.status(400).json('Unable to upload that file')
     } else if (err) {
@@ -190,9 +173,9 @@ app.post('/upload',(req,res)=>{
    }
 	const filePath = req.protocol + "://" + host + '/' + modifLink(req.file.path);
 	console.log(filePath)
-	//Change :3001 later when it's deployed
+	/*Change :3001 later when it's deployed*/
 	return res.json(filePath)
-  })*/	
+  })	
 })
 
 app.put('/modifArticle',(req,res)=>{				
