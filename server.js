@@ -155,8 +155,7 @@ app.post('/upload',(req,res)=>{
 	const filePath = test;
 	fetch('https://api.imgur.com/3/image', {
 			  method: 'post',
-			  headers: {
-			  	'Content-Type': 'application/json',
+			  headers: {			  	
 			  	'Authorization':'Client-ID 2d8b170d7a61ba0'
 			  },
 			  body: formData
