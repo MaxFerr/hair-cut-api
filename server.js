@@ -319,6 +319,39 @@ app.delete('/deleteArticle/:id',(req,res)=>{
 	 
 })
 
+app.delete('/deleteArticleS/:id',(req,res)=>{
+	const {id,oldImagePath,user}=req.body;	
+	/*it worked without the param, with the param i get the body ,check to see why.*/	
+	 if(user===14){
+	 	db.transaction(trx=>{
+		trx('commentsresp')
+		.returning('commentsresp.article_id')
+		.where('commentsresp.article_id','=',id)
+		.del()
+		.then(article_id=>{
+		return trx('comments')
+			.returning('*')
+			.where('comments.article_id','=',id)
+			.del()			
+			.then(article_id=>{				
+				return trx('articles')
+				.returning('*')
+				.where('m_article_id','=',id)
+				.del()											
+			})
+		}).then(articles=>{
+					res.json(articles[0])
+				})	
+		.then(trx.commit)
+		.catch(trx.rollback)
+	})
+		.catch(err=>res.status(400).json('Article could not be deleted.'))	
+	}else{
+		res.status(400).json('Article could not be deleted.')
+	}
+	 
+})
+
 app.delete('/deleteComment/:id',(req,res)=>{
 	const {id,user}=req.body;
 	if(user===14){
