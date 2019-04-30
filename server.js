@@ -128,7 +128,7 @@ app.post('/login',(req,res)=>{
 
 app.post('/newarticle',(req,res)=>{
 	const {image,title,secondtitle,text,added,favorite,user}=req.body;
-	if(image!='Unable to upload that file' && user===14){
+	if(image!='Unable to upload that file' && user===process.env.admin_id){
 		db('articles')
 		.returning('*')
 		.insert({
@@ -180,7 +180,7 @@ app.post('/upload',(req,res)=>{
 
 app.put('/modifArticle',(req,res)=>{				
 	const { title,secondtitle,text,favorite,image,oldImagePath,m_article_id,user } = req.body;
-	if(user===14){
+	if(user===process.env.admin_id){
 	db('articles').where('m_article_id','=',m_article_id )
 	.update({
 		image:image,
@@ -277,7 +277,7 @@ app.post('/sendResponse',(req,res)=>{
 app.delete('/deleteArticle/:id',(req,res)=>{
 	const {id,oldImagePath,user}=req.body;	
 	/*it worked without the param, with the param i get the body ,check to see why.*/	
-	 if(user===14){
+	 if(user===process.env.admin_id){
 	 	db.transaction(trx=>{
 		trx('commentsresp')
 		.returning('commentsresp.article_id')
@@ -322,7 +322,7 @@ app.delete('/deleteArticle/:id',(req,res)=>{
 app.delete('/deleteArticleS/:id',(req,res)=>{
 	const {id,oldImagePath,user}=req.body;	
 	/*it worked without the param, with the param i get the body ,check to see why.*/	
-	 if(user===14){
+	 if(user===process.env.admin_id){
 	 	db.transaction(trx=>{
 		trx('commentsresp')
 		.returning('commentsresp.article_id')
@@ -354,7 +354,7 @@ app.delete('/deleteArticleS/:id',(req,res)=>{
 
 app.delete('/deleteComment/:id',(req,res)=>{
 	const {id,user}=req.body;
-	if(user===14){
+	if(user===process.env.admin_id){
 		db.transaction(trx=>{
 		trx('commentsresp')
 		.returning('commentsresp.comment_id')
@@ -381,7 +381,7 @@ app.delete('/deleteComment/:id',(req,res)=>{
 
 app.delete('/deleteCommentResp/:id',(req,res)=>{
 	const {id,user}=req.body;
-	if(user===14){
+	if(user===process.env.admin_id){
 		db('commentsresp')
 		.returning('*')
 		.where('m_commentresp_id','=',id)
@@ -409,7 +409,7 @@ app.post('/sendmail',(req,res)=>{
 					service: 'Gmail',		        
 					auth: {
 		            user: 'TestNodemailerYelcamp@gmail.com', 
-		            pass: 'TestNodemailerYelcampTestNodemailerYelcamp' /* CHECK ENV VARIABLE !!!!!!!!!!!!!!!!!!!!!!!!*/
+		            pass: ´${process.env.email_pass}´ /* CHECK ENV VARIABLE !!!!!!!!!!!!!!!!!!!!!!!!*/
 		        }
 		    });	
 				let mailOptions = {
@@ -451,7 +451,7 @@ app.post('/forgot',(req,res)=>{
 					service: 'Gmail',		        
 					auth: {
 		            user: 'TestNodemailerYelcamp@gmail.com', // generated ethereal user
-		            pass: 'TestNodemailerYelcampTestNodemailerYelcamp' // generated ethereal password
+		            pass: ´${process.env.email_pass}´ // generated ethereal password
 		        }
 		    });	
 				let mailOptions = {
