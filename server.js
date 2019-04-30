@@ -409,7 +409,7 @@ app.post('/sendmail',(req,res)=>{
 					service: 'Gmail',		        
 					auth: {
 		            user: 'TestNodemailerYelcamp@gmail.com', 
-		            pass: ´${process.env.email_pass}´ /* CHECK ENV VARIABLE !!!!!!!!!!!!!!!!!!!!!!!!*/
+		            pass: `${process.env.email_pass}` /* CHECK ENV VARIABLE !!!!!!!!!!!!!!!!!!!!!!!!*/
 		        }
 		    });	
 				let mailOptions = {
@@ -451,7 +451,7 @@ app.post('/forgot',(req,res)=>{
 					service: 'Gmail',		        
 					auth: {
 		            user: 'TestNodemailerYelcamp@gmail.com', // generated ethereal user
-		            pass: ´${process.env.email_pass}´ // generated ethereal password
+		            pass: `${process.env.email_pass}` // generated ethereal password
 		        }
 		    });	
 				let mailOptions = {
