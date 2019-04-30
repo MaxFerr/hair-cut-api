@@ -522,4 +522,9 @@ app.put('/updatePassword',(req, res)=>{
 })
 
 
+app.get('/admin',(req,res)=>{				
+	res.json(process.env.admin_id)	
+})
+
+
 app.listen(process.env.PORT || 3001,()=>{console.log("app is running on port "+process.env.PORT)});
