@@ -522,8 +522,12 @@ app.put('/updatePassword',(req, res)=>{
 })
 
 
-app.get('/admin',(req,res)=>{				
-	res.json(process.env.admin_id)	
+app.get('/admin/:id',(req,res)=>{
+	if(id===process.env.admin_id){
+		return res.json(process.env.admin_id)
+	}else{
+		return res.status(400).json('Error.')
+	}		
 })
 
 
