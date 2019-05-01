@@ -523,6 +523,7 @@ app.put('/updatePassword',(req, res)=>{
 
 
 app.get('/admin/:id',(req,res)=>{
+	const {id}=req.params;
 	if(id===process.env.admin_id){
 		return res.json(process.env.admin_id)
 	}else{
