@@ -11,7 +11,9 @@ const fs = require('fs');
 
 
 const storage = multer.diskStorage({
+	// storing images in public/uploads
    destination: "./public/uploads/",
+   // renaming the file like that we don't have files with the same name
    filename: function(req, file, cb){
       cb(null,"IMAGE-" + Date.now() + '-' +file.originalname);
    }
@@ -19,15 +21,18 @@ const storage = multer.diskStorage({
 
 const upload = multer({
    storage: storage,
+   // check if the file name contain .jpg etc.. (needs to be change check magical number)
    fileFilter: function (req, file, cb) {
     if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
         return cb(new Error('Only image files are allowed!'));
     }
     cb(null, true);
   },
+  // set the size of the file (3mb)
    limits:{fileSize: 3000000},
 }).single("myImage");
 
+//connecting db to server with knex, heroku app
 const db=knex({
 	client:'pg',
 	connection:{
@@ -40,6 +45,7 @@ const app=express();
 app.use(bodyParser.json());
 app.use(cors());
 
+//Serving static files(images)
 app.use('/public', express.static(__dirname + '/public'));
 
 app.get('/',(req,res)=>{
@@ -59,6 +65,7 @@ app.get('/article/:id',(req,res)=>{
 
 app.post('/register',(req,res)=>{	
 	const {email,name,password}=req.body;
+	//check if email,name... have a { to avoid bad codes -> securty. I should make a function of this
 	if(!email||
 		email.split('').filter(x => x === '{').length === 1||
 		!name||
@@ -158,7 +165,7 @@ app.post('/upload',(req,res)=>{
       return res.status(400).json('Unable to upload that file')
     } 
    const host = req.hostname;
-   
+   //changing "\" to "/"
    const modifLink=(path)=>{
    		let newPath='';
    		const slash='\\';
@@ -171,8 +178,7 @@ app.post('/upload',(req,res)=>{
    	}   	
    	return newPath;
    }
-	const filePath = req.protocol + "://" + host + '/' + modifLink(req.file.path);
-	console.log(filePath)
+	const filePath = req.protocol + "://" + host + '/' + modifLink(req.file.path);	
 	/*Change :3001 later when it's deployed*/
 	return res.json(filePath)
   })	
@@ -199,11 +205,10 @@ app.put('/modifArticle',(req,res)=>{
 		const NewDelPath=delImagePath.replace(req.protocol + "://" + host, '.');		
 		/*const host = req.hostname; replace 'http://localhost:3001' */
 		fs.unlink(NewDelPath, (err) => {
-		  if (err) {
-		    console.error(err)
+		  if (err) {		    
 		    return 'Could not delete that file.'
 		  }
-		  return console.log('File removed.')
+		  return 'File removed.'
 		})
 	}
 	}else{
@@ -406,13 +411,15 @@ app.post('/sendmail',(req,res)=>{
 		return res.status(400).json('Incorrect info.')
 	}
 		let transporter = nodemailer.createTransport({
+			//used email
 					service: 'Gmail',		        
 					auth: {
 		            user: 'TestNodemailerYelcamp@gmail.com', 
-		            pass: `${process.env.email_pass}` /* CHECK ENV VARIABLE !!!!!!!!!!!!!!!!!!!!!!!!*/
+		            pass: `${process.env.email_pass}` 
 		        }
 		    });	
 				let mailOptions = {
+					//receive email
 		        from: 'TestNodemailerYelcamp@gmail.com', 
 		        to: 'ferromassimo1989@gmail.com', 
 		        subject: 'Work', 
@@ -435,23 +442,27 @@ app.post('/forgot',(req,res)=>{
 	db('users')
 	.where('email','=',email)	
 	.then(user=>{
-		if(user[0]){		
+		if(user[0]){
+		//creating a token		
 			const token=crypto.randomBytes(20).toString('hex');
+			//setting expires time
 			const expires=Number(Date.now())+ 3600000;
 			db('login')			
-			.where('email','=',email)									
+			.where('email','=',email)
+			//sending token and expires to the db									
 			.update({
 				resetpasstoken:token,				
 				resetpassexpires:expires			
 			})
 			.returning(['resetpasstoken'])
 			.then(data=>{
-				res.json('data sent.')				
+				res.json('data sent.')
+				//sending a mail to the user				
 				let transporter = nodemailer.createTransport({
 					service: 'Gmail',		        
 					auth: {
-		            user: 'TestNodemailerYelcamp@gmail.com', // generated ethereal user
-		            pass: `${process.env.email_pass}` // generated ethereal password
+		            user: 'TestNodemailerYelcamp@gmail.com', 
+		            pass: `${process.env.email_pass}` 
 		        }
 		    });	
 				let mailOptions = {
@@ -486,6 +497,7 @@ app.get('/resetPass/:token',(req,res)=>{
 	.returning(['resetpassexpires','email'])
 	.then(data=>{
 		if(data[0]){
+			// if token isnt expired reset the password (sending user's email to FE)
 			if(Number(data[0].resetpassexpires)>Date.now()){				
 				res.json({email:data[0].email})
 			}else{
