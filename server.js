@@ -412,7 +412,7 @@ app.post('/sendmail',(req,res)=>{
 	}
 		let transporter = nodemailer.createTransport({
 			//used email
-					service: 'Gmail',		        
+					service: 'yahoo',		        
 					auth: {
 		            user: 'TestNodemailerYelcamp@gmail.com', 
 		            pass: `${process.env.email_pass}` 
@@ -420,7 +420,7 @@ app.post('/sendmail',(req,res)=>{
 		    });	
 				let mailOptions = {
 					//receive email
-		        from: 'TestNodemailerYelcamp@gmail.com', 
+		        from: 'TestNodemailerYelcamp@yahoo.com', 
 		        to: 'ferromassimo1989@gmail.com', 
 		        subject: 'Work', 
 		        text: `Email:${email} Name:${name} Message:${message}`
