@@ -414,7 +414,7 @@ app.post('/sendmail',(req,res)=>{
 			//used email
 					service: 'yahoo',		        
 					auth: {
-		            user: 'TestNodemailerYelcamp@gmail.com', 
+		            user: 'TestNodemailerYelcamp@yahoo.com', 
 		            pass: `${process.env.email_pass}` 
 		        }
 		    });	
