@@ -135,7 +135,7 @@ app.post('/login',(req,res)=>{
 
 app.post('/newarticle',(req,res)=>{
 	const {image,title,secondtitle,text,added,favorite,user}=req.body;
-	if(image!='Unable to upload that file' && user===process.env.admin_id){
+	if(image!='Unable to upload that file' && Number(user)===Number(process.env.admin_id)){
 		db('articles')
 		.returning('*')
 		.insert({
@@ -186,7 +186,7 @@ app.post('/upload',(req,res)=>{
 
 app.put('/modifArticle',(req,res)=>{				
 	const { title,secondtitle,text,favorite,image,oldImagePath,m_article_id,user } = req.body;
-	if(user===process.env.admin_id){
+	if(Number(user)===Number(process.env.admin_id)){
 	db('articles').where('m_article_id','=',m_article_id )
 	.update({
 		image:image,
@@ -282,7 +282,7 @@ app.post('/sendResponse',(req,res)=>{
 app.delete('/deleteArticle/:id',(req,res)=>{
 	const {id,oldImagePath,user}=req.body;	
 	/*it worked without the param, with the param i get the body ,check to see why.*/	
-	 if(user===process.env.admin_id){
+	 if(Number(user)===Number(process.env.admin_id)){
 	 	db.transaction(trx=>{
 		trx('commentsresp')
 		.returning('commentsresp.article_id')
@@ -327,7 +327,7 @@ app.delete('/deleteArticle/:id',(req,res)=>{
 app.delete('/deleteArticleS/:id',(req,res)=>{
 	const {id,oldImagePath,user}=req.body;	
 	/*it worked without the param, with the param i get the body ,check to see why.*/	
-	 if(user===process.env.admin_id){
+	 if(Number(user)===Number(process.env.admin_id)){
 	 	db.transaction(trx=>{
 		trx('commentsresp')
 		.returning('commentsresp.article_id')
@@ -359,7 +359,7 @@ app.delete('/deleteArticleS/:id',(req,res)=>{
 
 app.delete('/deleteComment/:id',(req,res)=>{
 	const {id,user}=req.body;
-	if(user===process.env.admin_id){
+	if(Number(user)===Number(process.env.admin_id)){
 		db.transaction(trx=>{
 		trx('commentsresp')
 		.returning('commentsresp.comment_id')
@@ -386,7 +386,7 @@ app.delete('/deleteComment/:id',(req,res)=>{
 
 app.delete('/deleteCommentResp/:id',(req,res)=>{
 	const {id,user}=req.body;
-	if(user===process.env.admin_id){
+	if(Number(user)===Number(process.env.admin_id)){
 		db('commentsresp')
 		.returning('*')
 		.where('m_commentresp_id','=',id)
@@ -536,7 +536,7 @@ app.put('/updatePassword',(req, res)=>{
 
 app.get('/admin/:id',(req,res)=>{
 	const {id}=req.params;
-	if(id===process.env.admin_id){
+	if(Number(id)===Number(process.env.admin_id)){
 		return res.json(process.env.admin_id)
 	}else{
 		return res.status(400).json('Error.')
