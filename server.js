@@ -9,6 +9,13 @@ const multer = require("multer");
 const fs = require('fs');
 
 
+const check=(data)=>{
+	if (data.split('').filter(x => x === '{').length >= 1) {
+		return true
+	}else{
+		return false
+	}
+}
 
 const storage = multer.diskStorage({
 	// storing images in public/uploads
@@ -48,6 +55,7 @@ app.use(cors());
 //Serving static files(images)
 app.use('/public', express.static(__dirname + '/public'));
 
+//getting all the articles from the db ordered by id
 app.get('/',(req,res)=>{
 	db.select('*').from('articles').orderBy('m_article_id','desc')
 	.then(article=>{
@@ -55,27 +63,31 @@ app.get('/',(req,res)=>{
 	})
 })
 
+//getting a single article selected by id
 app.get('/article/:id',(req,res)=>{
+	//getting id from the FE
 	const {id}=req.params;
+	//selecting the corresponding article where id from FE = id from db	
 	db.select('*').from('articles').where('m_article_id','=',id)
 	.then(article=>{
 		res.json(article[0])
 	})
 })
 
-app.post('/register',(req,res)=>{	
+app.post('/register',(req,res)=>{
+	//getting email,name,password from FE	
 	const {email,name,password}=req.body;
 	//check if email,name... have a { to avoid bad codes -> securty. I should make a function of this
-	if(!email||
-		email.split('').filter(x => x === '{').length === 1||
-		!name||
-		name.split('').filter(x => x === '{').length === 1||
-		!password||password.split('').filter(x => x === '{').length === 1){
+		//if data received from FE are empty or contain { return error
+	if(!email||	check(email) ||	!name||	check(name)|| !password||check(password)){
 		return res.status(400).json('Incorrect form.')
 	}else{
+		//using bcrypt to encrypt user's password
 		bcrypt.genSalt(10, function(err, salt) {
    		 bcrypt.hash(password, salt, function(err, hash) {
+   		 	//using knex's transaction to work on multiple tables at the same time
         db.transaction(trx=>{
+        	//inserting hashed password and email to the login table
 		trx.insert({
 			password:hash,
 			email:email
@@ -86,12 +98,14 @@ app.post('/register',(req,res)=>{
 
 		return trx('users')
 			.returning('*')
+			//inserting email,name,joined to the users table
 			.insert({
 				email:loginEmail[0],
 				name:name,
 				joined: new Date()
 			})
 			.then(user=>{
+				//sending last user's info to the FE
 				res.json(user[0])
 			})
 		})
@@ -106,21 +120,26 @@ app.post('/register',(req,res)=>{
 });
 
 app.post('/login',(req,res)=>{
+	//getting email,password from FE
 	const {email,password}=req.body;
-	if(!email||
-		email.split('').filter(x => x === '{').length === 1||		
-		!password||
-		password.split('').filter(x => x === '{').length === 1){
+	//check if email,name... have a { to avoid bad codes -> securty. I should make a function of this
+		//if data received from FE are empty or contain { return error
+	if(!email||	check(email)||!password||check(password)){
 		return res.status(400).json('Incorrect form.')
 	}else{
+		//selecting email,password from login's table where FE email= db email
 		db.select('email','password').from('login')
 		.where('email','=',email)
 		.then(loginInfo=>{
-		bcrypt.compare(password, loginInfo[0].password, function(err, check) {		 
+			//comparing the FE password with the crypted password in db
+		bcrypt.compare(password, loginInfo[0].password, function(err, check) {
+		//if there are no errors /check is true		 
 			if(check) {
+				//select users's data from users table where  email(users table) =  email(login table)
 				return db.select('*').from('users')
 				.where('email','=',loginInfo[0].email)
 				.then(user=>{
+					//sending user's info to the FE (from the users table so there is no password sent)
 					res.json(user[0])
 				})
 				.catch(err=>res.status(400).json('unable to connect'))
@@ -138,6 +157,7 @@ app.post('/newarticle',(req,res)=>{
 	if(image!='Unable to upload that file' && Number(user)===Number(process.env.admin_id)){
 		db('articles')
 		.returning('*')
+		//inserting new article's data to the db (if the image is a link)
 		.insert({
 			image:image,		
 			title:title,
@@ -158,12 +178,14 @@ app.post('/newarticle',(req,res)=>{
 })
 
 app.post('/upload',(req,res)=>{
+	//using multer to upload file
 	upload(req, res, function (err) {
 	 if (err instanceof multer.MulterError) {
       return res.status(400).json('Unable to upload that file')
     } else if (err) {
       return res.status(400).json('Unable to upload that file')
     } 
+    //creating a file path
    const host = req.hostname;
    //changing "\" to "/"
    const modifLink=(path)=>{
@@ -180,6 +202,7 @@ app.post('/upload',(req,res)=>{
    }
 	const filePath = req.protocol + "://" + host + '/' + modifLink(req.file.path);	
 	/*Change :3001 later when it's deployed*/
+	//sending the filepath to the FE. If the FE recieve a valid file path. it will send that path to the newarticle route
 	return res.json(filePath)
   })	
 })
@@ -188,6 +211,7 @@ app.put('/modifArticle',(req,res)=>{
 	const { title,secondtitle,text,favorite,image,oldImagePath,m_article_id,user } = req.body;
 	if(Number(user)===Number(process.env.admin_id)){
 	db('articles').where('m_article_id','=',m_article_id )
+	//updating article's info
 	.update({
 		image:image,
 	    title: title,
@@ -200,6 +224,7 @@ app.put('/modifArticle',(req,res)=>{
 		res.json(article[0])
 	})
 	.catch(err=>res.status(400).json('Unable to get that article.'))
+	//deleting the old image if the old image has a path
 		if(oldImagePath!==undefined){
 			const delImagePath = oldImagePath;		
 		const NewDelPath=delImagePath.replace(req.protocol + "://" + host, '.');		
@@ -217,6 +242,7 @@ app.put('/modifArticle',(req,res)=>{
 })
 
 app.get('/comments/:id',(req,res)=>{
+	//getting comments from one article 
 	const {id}=req.params;
 	db.from('comments').innerJoin('users', 'comments.user_id', 'users.m_user_id')
 	.where('article_id','=',id)
@@ -228,11 +254,12 @@ app.get('/comments/:id',(req,res)=>{
 
 app.post('/sendComment',(req,res)=>{	
 	const {article_id,comment,user_id,added}=req.body;
-	if(!user_id || !comment||comment.split('').filter(x => x === '{').length === 1 ){
+	if(!user_id || !comment||check(comment) ){
 		return res.status(400).json('Incorrect form.')
 	}else{
 	db('comments')
 	.returning('*')
+	//inserting comment's data to the db
 	.insert({
 		article_id:article_id,		
 		comment:comment,
@@ -248,6 +275,7 @@ app.post('/sendComment',(req,res)=>{
 
 
 app.get('/commentresponse/:id',(req,res)=>{
+	//getting comments's answer from one article 
 	const {id}=req.params;
 	db.from('commentsresp').innerJoin('users', 'commentsresp.user_id', 'users.m_user_id')
 	.where('article_id','=',id)
@@ -259,11 +287,12 @@ app.get('/commentresponse/:id',(req,res)=>{
 
 app.post('/sendResponse',(req,res)=>{	
 	const {article_id,comment,user_id,added,comment_id}=req.body;
-	if(!user_id || !comment||comment.split('').filter(x => x === '{').length === 1 ){
+	if(!user_id || !comment||check(comment) ){
 		return res.status(400).json('Incorrect form.')
 	}else{
 	db('commentsresp')
 	.returning('*')
+	//inserting answer's data to the db
 	.insert({
 		article_id:article_id,		
 		resp:comment,
@@ -278,22 +307,24 @@ app.post('/sendResponse',(req,res)=>{
 	}	
 })
 
-
+//not used right now cause we can't save uploaded file on heroku
 app.delete('/deleteArticle/:id',(req,res)=>{
 	const {id,oldImagePath,user}=req.body;	
-	/*it worked without the param, with the param i get the body ,check to see why.*/	
 	 if(Number(user)===Number(process.env.admin_id)){
+	 	//delete commentsresp then comments then file/image then article at the same time so using transaction
 	 	db.transaction(trx=>{
 		trx('commentsresp')
 		.returning('commentsresp.article_id')
 		.where('commentsresp.article_id','=',id)
 		.del()
 		.then(article_id=>{
+			//delete comments
 		return trx('comments')
 			.returning('*')
 			.where('comments.article_id','=',id)
 			.del()			
 			.then(article_id=>{
+				//delete image if it's not undefined
 				if(oldImagePath!==undefined){
 				const delImagePath = oldImagePath;		
 				const NewDelPath=delImagePath.replace(req.protocol + "://" + host, '.');		
@@ -306,6 +337,7 @@ app.delete('/deleteArticle/:id',(req,res)=>{
 				  return console.log('File removed.')
 				})
 			}
+			//delete article
 				return trx('articles')
 				.returning('*')
 				.where('m_article_id','=',id)
@@ -326,8 +358,8 @@ app.delete('/deleteArticle/:id',(req,res)=>{
 
 app.delete('/deleteArticleS/:id',(req,res)=>{
 	const {id,oldImagePath,user}=req.body;	
-	/*it worked without the param, with the param i get the body ,check to see why.*/	
 	 if(Number(user)===Number(process.env.admin_id)){
+	 	//delete commentsresp then comments  then article at the same time so using transaction
 	 	db.transaction(trx=>{
 		trx('commentsresp')
 		.returning('commentsresp.article_id')
@@ -360,6 +392,7 @@ app.delete('/deleteArticleS/:id',(req,res)=>{
 app.delete('/deleteComment/:id',(req,res)=>{
 	const {id,user}=req.body;
 	if(Number(user)===Number(process.env.admin_id)){
+		//delete  comments but first we need to delete commentsresp
 		db.transaction(trx=>{
 		trx('commentsresp')
 		.returning('commentsresp.comment_id')
@@ -401,13 +434,9 @@ app.delete('/deleteCommentResp/:id',(req,res)=>{
 })
 
 app.post('/sendmail',(req,res)=>{
+	//using nodemailer to send email
 	const {name,email,message,user}=req.body;
-	if(!email||
-		email.split('').filter(x => x === '{').length === 1||
-		!name||
-		name.split('').filter(x => x === '{').length === 1||		
-		!message||
-		message.split('').filter(x => x === '{').length === 1 || !user ){
+	if(!email||	check(email)||!name||check(name)||!message||check(message) || !user ){
 		return res.status(400).json('Incorrect info.')
 	}
 		let transporter = nodemailer.createTransport({
@@ -436,7 +465,7 @@ app.post('/sendmail',(req,res)=>{
 
 app.post('/forgot',(req,res)=>{	
 	const {email}=req.body;
-	if(!email||	email.split('').filter(x => x === '{').length === 1){
+	if(!email||	check(email)){
 		return res.status(400).json('Incorrect info.')
 	}else{
 	db('users')
@@ -512,7 +541,7 @@ app.get('/resetPass/:token',(req,res)=>{
 
 app.put('/updatePassword',(req, res)=>{
 	const { resetpasstoken,password } = req.body;
-	if(!password||	password.split('').filter(x => x === '{').length === 1){
+	if(!password||	check(password)){
 		return res.status(400).json('Incorrect info.')
 	}else{
 	bcrypt.genSalt(10, function(err, salt){
@@ -535,6 +564,7 @@ app.put('/updatePassword',(req, res)=>{
 
 
 app.get('/admin/:id',(req,res)=>{
+	//admin check
 	const {id}=req.params;
 	if(Number(id)===Number(process.env.admin_id)){
 		return res.json(process.env.admin_id)
